@@ -1,0 +1,28 @@
+- hosts: master
+  tasks:
+  - name: initialise master
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}   --pod-network-cidr=192.168.0.0/16
+  - name: Create /root/.kube
+    file:
+      path: /root/.kube
+      state: directory
+      owner: root
+  - name: Create /home/e2m/.kube
+    file:
+      path: /home/e2m/.kube
+      state: directory
+      owner: e2m
+  - name: Copy admin.conf to root
+    shell: cp /etc/kubernetes/admin.conf /root/.kube/config
+  - name: Copy admin.conf to e2m
+    shell: cp /etc/kubernetes/admin.conf /home/e2m/.kube/config
+  - name: make shure /home/e2m/.kube/config belongs to 22m
+    file:
+      path: /home/e2m/.kube/config
+      owner: e2m
+  - name: initialise calico
+    shell: kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+  - name: initialise calico
+    shell: kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+
+

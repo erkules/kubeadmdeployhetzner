@@ -1,0 +1,34 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Wait for system to become reachable
+    wait_for_connection:
+- hosts: all
+  tasks:
+  - name: enable password-auth
+    lineinfile: 
+      dest: /etc/ssh/sshd_config
+      regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication yes"
+      state: present
+    notify:
+    - restart sshd
+  - name: create user
+    user:
+      name:     "{{ user }}"
+      group:    "sudo"
+      #group:    "admin"
+      shell:    /bin/bash
+      #      password: "{{ password }}"
+  - name: change password
+    shell: echo "{{ user }}:{{ password }}" | chpasswd 
+  - name: Allow 'admin' group to have passwordless sudo
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%sudo'
+      line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+
+  handlers:
+  - name: restart sshd
+    service: name=sshd state=restarted

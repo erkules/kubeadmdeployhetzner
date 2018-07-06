@@ -1,0 +1,26 @@
+- hosts: all
+  tasks:
+  - name: add kubernetes repository
+    apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+  - name: get kubernetes apt key
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+  - name: install docker
+    apt:
+      name:         "{{ item }}"
+      update_cache: yes
+    with_items:
+    - docker.io
+    - kubelet 
+    - kubeadm 
+    - kubectl
+  - name: disable ufw
+    systemd:
+      name: ufw
+      enabled: no
+      masked: yes 
+      state: stopped 
+  - name: disable ufw via shell
+    shell: ufw disable

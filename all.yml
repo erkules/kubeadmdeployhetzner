@@ -1,0 +1,5 @@
+- include: user-play.yml
+- include: nodes-play.yml
+- include: master-init.yml
+- include: nodes-join.yml
+
