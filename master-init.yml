@@ -1,7 +1,11 @@
 - hosts: master
   tasks:
   - name: initialise master
-    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}   --pod-network-cidr=192.168.0.0/16
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}   --cri-socket /run/containerd/containerd.sock
+    when: cni == "weave"
+  - name: initialise master
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}  --cri-socket /run/containerd/containerd.sock   --pod-network-cidr=192.168.0.0/16
+    when: cni == "calico"
   - name: Create /root/.kube
     file:
       path: /root/.kube
@@ -16,13 +20,29 @@
     shell: cp /etc/kubernetes/admin.conf /root/.kube/config
   - name: Copy admin.conf to e2m
     shell: cp /etc/kubernetes/admin.conf /home/e2m/.kube/config
+  - name: bash_completition
+    shell: kubectl completion bash >/etc/bash_completion.d/kubectl
   - name: make shure /home/e2m/.kube/config belongs to 22m
     file:
       path: /home/e2m/.kube/config
       owner: e2m
+  - name: initialise weave
+    shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+    when: cni == "weave"
   - name: initialise calico
-    shell: kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+    shell: kubectl apply -f https://docs.projectcalico.org/v3.2/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+    when: cni == "calicoo"
   - name: initialise calico
-    shell: kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+    shell: kubectl apply -f https://docs.projectcalico.org/v3.9/manifests/calico.yaml 
+    when: cni == "calico"
+  - name: Install Metrics-Server
+    shell: kubectl apply  -f https://raw.githubusercontent.com/erkules/k8sworkshop/master/System/metrics-server.yaml
 
-
+  - name: Add IP address of all hosts to all hosts
+    lineinfile:
+      dest: /etc/hosts
+      regexp: '.*{{ item }}$'
+      line: "{{ hostvars[item].ansible_host }} {{item}}"
+      state: present
+    when: hostvars[item].ansible_host is defined
+    with_items: "{{ groups.all }}"

@@ -1,2 +1,4 @@
-user: e2m
-password: dc201711
+user: k8suser
+password: KrassesPasswort4711
+cni: calico
+#cni: weave

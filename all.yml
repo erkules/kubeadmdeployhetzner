@@ -1,5 +1,6 @@
-- include: user-play.yml
-- include: nodes-play.yml
-- include: master-init.yml
-- include: nodes-join.yml
+- import_playbook: user-play.yml
+- import_playbook: nodes-play.yml
+- import_playbook: master-play.yml
+- import_playbook: master-init.yml
+- import_playbook: nodes-join.yml
 

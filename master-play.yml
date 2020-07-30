@@ -1,0 +1,13 @@
+- hosts: master
+  tasks:
+  - name: download helm
+    unarchive: 
+      src: https://get.helm.sh/helm-v3.1.1-linux-amd64.tar.gz
+      dest: /usr/local/bin
+      remote_src: yes
+      extra_opts: [--strip-components=1]
+  - name: download istioctl
+    unarchive: 
+      src: https://github.com/istio/istio/releases/download/1.6.4/istioctl-1.6.4-linux-amd64.tar.gz
+      dest: /usr/local/bin
+      remote_src: yes

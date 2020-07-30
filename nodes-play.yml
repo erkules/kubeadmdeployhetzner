@@ -1,21 +1,73 @@
 - hosts: all
   tasks:
+  - name: get kubernetes apt key
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
   - name: add kubernetes repository
     apt_repository:
         repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
         state: present
-  - name: get kubernetes apt key
+    register: apt_status
+    #until: apt_status|success
+    until: apt_status is success
+    delay: 10
+    retries: 10
+  - name: get docker apt key
     apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-  - name: install docker
+      url: https://download.docker.com/linux/ubuntu/gpg
+  - name: add docker-ce repository
+    apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+        state: present
+    register: apt_status
+    #until: apt_status|success
+    until: apt_status is success
+    delay: 10
+    retries: 10
+
+  - name: Create /etc/containerd
+    file:
+      path: /etc/containerd
+      state: directory
+      owner: root
+
+  - name: Copy containerd conf file
+    copy:
+      src: "files/config.toml"
+      dest: "/etc/containerd/config.toml"
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Copy crictl config file
+    copy:
+      src: "files/crictl.yaml"
+      dest: "/etc/crictl.yaml"
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: install packages
     apt:
-      name:         "{{ item }}"
+      name: 
+      - docker-ce
+      - kubelet 
+      - kubeadm 
+      - kubectl
+      - socat 
+      - conntrack 
+      - ipset
+      - jq
+      - ipvsadm
+      - mc
+      - tmux
+      - git
+      - vim
       update_cache: yes
-    with_items:
-    - docker.io
-    - kubelet 
-    - kubeadm 
-    - kubectl
+    register: apt_status
+    until: apt_status is success
+    delay: 10
+    retries: 10
   - name: disable ufw
     systemd:
       name: ufw
@@ -24,3 +76,39 @@
       state: stopped 
   - name: disable ufw via shell
     shell: ufw disable
+  - name: Load Kernel Modules for K8S - ip_vs
+    modprobe:
+     name: "ip_vs"
+     state: "present"
+  - name: set EDITOR=vim :)
+    lineinfile: 
+     dest: /etc/environment
+     regexp: "^EDITOR"
+     line: "EDITOR=vim"
+     state: present
+
+  
+  - name: Load Kernel Modules for K8S - ip_vs_rr
+    modprobe:
+     name: "ip_vs_rr"
+     state: "present"
+  
+  - name: Load Kernel Modules for K8S - ip_vs_wrr
+    modprobe:
+     name: "ip_vs_wrr"
+     state: "present"
+  
+  - name: Load Kernel Modules for K8S - ip_vs_sh
+    modprobe:
+     name: "ip_vs_sh"
+     state: "present"
+  
+  - name: Copy k8s Modules Files for Modules Load
+    copy:
+      src: "files/k8s-modules.conf"
+      dest: "/etc/modules-load.d/k8s-modules.conf"
+      owner: root
+      group: root
+      mode: 0644
+
+

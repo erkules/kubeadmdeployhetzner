@@ -14,7 +14,7 @@
   - debug:
       msg: "{{ token }}"
   - name: Join Node
-    shell: "{{ item  }}"
+    shell: "{{ item  }}  --cri-socket /run/containerd/containerd.sock "
     with_items: "{{ token.results[0].stdout_lines }}"
 
 
