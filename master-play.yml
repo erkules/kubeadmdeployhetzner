@@ -8,6 +8,20 @@
       extra_opts: [--strip-components=1]
   - name: download istioctl
     unarchive: 
-      src: https://github.com/istio/istio/releases/download/1.6.4/istioctl-1.6.4-linux-amd64.tar.gz
+      src: https://github.com/istio/istio/releases/download/1.7.0/istio-1.7.0-linux-amd64.tar.gz
+      dest: /usr/local/bin
+      extra_opts: 
+      - --strip-components=2
+      - --wildcards
+      - '*/istioctl'
+      remote_src: yes
+  - name: download stern
+    get_url: 
+      url: https://github.com/wercker/stern/releases/download/1.11.0/stern_linux_amd64
+      dest: /usr/local/bin/stern
+      mode: 0555
+  - name: download k9s
+    unarchive: 
+      src: https://github.com/derailed/k9s/releases/download/v0.21.7/k9s_Linux_x86_64.tar.gz
       dest: /usr/local/bin
       remote_src: yes
