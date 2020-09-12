@@ -1,0 +1,9 @@
+plugin: hcloud
+
+locations:
+  - nbg1
+types:
+  - cx21
+keyed_groups:
+  - key: labels
+    prefix: k8s

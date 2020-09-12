@@ -1,0 +1,24 @@
+- name: Initialisiere HCLOUD Server Instanzen
+  hcloud_server:
+    api_token: "{{ lookup('env','HCLOUD_TOKEN') }}"
+    name: "{{ hostname_prefix }}-{{ item }}"
+    location: "{{hetzner_location}}"
+    labels:
+      master: "{% if not item == node_start_id | string %}no{% else %}yes{% endif %}"
+    server_type: "{{ hetzner_server_type}}"
+    image: "{{ hetzner_image }}"
+    state: present
+    ssh_keys: "{{ hetzner_ssh_keys }}"
+  register: server
+- name: Aufgabe HCLOUD Result
+  debug:
+    msg: "{{ server }}"
+
+
+- name: Finde den ersten
+  debug:
+    msg: "{{ node_start_id }}{{ item }}"
+
+- name: Finde den ersten
+  debug:
+    msg: "{% if not item == node_start_id %}node{% else %}master{% endif %}"

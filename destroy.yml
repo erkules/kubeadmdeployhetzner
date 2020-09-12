@@ -1,0 +1,17 @@
+---
+- name: Destroy
+  hosts: localhost
+  gather_facts: false
+  vars:
+    myquery: "hcloud_server.{ip: ipv4_address, name: name}"
+  tasks:
+    - name: Initialisiere HCLOUD Server Instanzen
+      hcloud_server:
+        api_token: "{{ lookup('env','HCLOUD_TOKEN') }}"
+        name: "{{ hostname_prefix }}-{{ item }}"
+        location: "{{hetzner_location}}"
+        labels:
+        server_type: "{{ hetzner_server_type}}"
+        image: "{{hetzner_image}}"
+        state: absent
+      with_sequence: start="{{ node_start_id }}" end="{{ nodes }}"
