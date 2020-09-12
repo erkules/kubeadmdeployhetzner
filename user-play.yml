@@ -1,9 +1,11 @@
 - hosts: all
   gather_facts: no
+  user: root
   tasks:
   - name: Wait for system to become reachable
     wait_for_connection:
 - hosts: all
+  user: root
   tasks:
   - name: enable password-auth
     lineinfile: 
@@ -15,13 +17,13 @@
     - restart sshd
   - name: create user
     user:
-      name:     "{{ user }}"
+      name:     "{{ e2m_user }}"
       group:    "sudo"
       #group:    "admin"
       shell:    /bin/bash
       #      password: "{{ password }}"
   - name: change password
-    shell: echo "{{ user }}:{{ password }}" | chpasswd 
+    shell: echo "{{ e2m_user }}:"{{ e2m_password | default(lookup('env','E2M_USER_PASSWORD')) }}"" | chpasswd
   - name: Allow 'admin' group to have passwordless sudo
     lineinfile:
       dest: /etc/sudoers

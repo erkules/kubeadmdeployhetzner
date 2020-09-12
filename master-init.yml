@@ -1,4 +1,5 @@
-- hosts: master
+- hosts: k8s_master_yes
+  user: root
   tasks:
   - name: initialise master
     shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}   --cri-socket /run/containerd/containerd.sock
@@ -11,21 +12,21 @@
       path: /root/.kube
       state: directory
       owner: root
-  - name: Create /home/e2m/.kube
+  - name: "Create /home/{{ e2m_user }}/.kube"
     file:
-      path: /home/e2m/.kube
+      path: "/home/{{ e2m_user }}/.kube"
       state: directory
-      owner: e2m
+      owner: "{{ e2m_user }}"
   - name: Copy admin.conf to root
     shell: cp /etc/kubernetes/admin.conf /root/.kube/config
-  - name: Copy admin.conf to e2m
-    shell: cp /etc/kubernetes/admin.conf /home/e2m/.kube/config
+  - name: "Copy admin.conf to {{ e2m_user }}"
+    shell: "cp /etc/kubernetes/admin.conf /home/{{ e2m_user }}/.kube/config"
   - name: bash_completition
     shell: kubectl completion bash >/etc/bash_completion.d/kubectl
-  - name: make shure /home/e2m/.kube/config belongs to 22m
+  - name: "make shure /home/{{ e2m_user }}/.kube/config belongs to 22m"
     file:
-      path: /home/e2m/.kube/config
-      owner: e2m
+      path: "/home/{{ e2m_user }}/.kube/config"
+      owner: "{{ e2m_user }}"
   - name: initialise weave
     shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
     when: cni == "weave"

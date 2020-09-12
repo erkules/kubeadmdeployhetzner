@@ -1,4 +1,11 @@
-user: k8suser
-password: KrassesPasswort4711
+e2m_user: e2m
+#e2m_password: it2020schmid
 cni: calico
 #cni: weave
+hetzner_server_type: cx21
+hetzner_image: ubuntu-20.04
+hetzner_location: nbg1
+hetzner_ssh_keys: TUXEDOBOOK
+node_start_id: 1
+nodes: 4
+hostname_prefix: node

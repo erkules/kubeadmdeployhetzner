@@ -1,3 +1,22 @@
+---
+- name: Create Basic Server on Hetzner Cloud
+  hosts: localhost
+  connection : local
+  gather_facts: False
+  vars:
+    myquery: "hcloud_server.{ip: ipv4_address, name: name}"
+  tasks:
+    - name: Bringing up Hetzner Servers
+      include_tasks: hetzner-init.yml
+      with_sequence: start="{{ node_start_id }}" end="{{ nodes }}"
+    - debug:
+        msg: "{{ groups }}"
+
+    - meta: refresh_inventory
+    - name: Pause
+      pause:
+        seconds: 10
+
 - import_playbook: user-play.yml
 - import_playbook: nodes-play.yml
 - import_playbook: master-play.yml

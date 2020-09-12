@@ -1,4 +1,5 @@
 - hosts: all
+  user: root
   tasks:
   - name: get kubernetes apt key
     apt_key:

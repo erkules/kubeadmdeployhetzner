@@ -1,15 +1,16 @@
 #- hosts: master
-- hosts: nodes
+- hosts: k8s_master_no
+  user: root
   tasks:
   - name: Get token
     shell:  kubeadm token create --print-join-command
     register: token
     delegate_to: "{{ item }}"
-    loop: "{{ groups['master']}}"
+    loop: "{{ groups['k8s_master_yes']}}"
   - name: get facts from master
     setup:
     delegate_to: "{{ item }}"
-    loop: "{{ groups['master']}}"
+    loop: "{{ groups['k8s_master_yes']}}"
     delegate_facts: true
   - debug:
       msg: "{{ token }}"
