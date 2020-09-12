@@ -1,5 +1,5 @@
 e2m_user: e2m
-#e2m_password: 
+#e2m_password:
 cni: calico
 #cni: weave
 hetzner_server_type: cx21
