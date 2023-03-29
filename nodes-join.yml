@@ -1,4 +1,3 @@
-#- hosts: master
 - hosts: nodes
   tasks:
   - name: Get token
@@ -6,15 +5,8 @@
     register: token
     delegate_to: "{{ item }}"
     loop: "{{ groups['master']}}"
-  - name: get facts from master
-    setup:
-    delegate_to: "{{ item }}"
-    loop: "{{ groups['master']}}"
-    delegate_facts: true
-  - debug:
-      msg: "{{ token }}"
   - name: Join Node
-    shell: "{{ item  }}  --cri-socket /run/containerd/containerd.sock "
+    shell: "{{ item  }}"
     with_items: "{{ token.results[0].stdout_lines }}"
 
 

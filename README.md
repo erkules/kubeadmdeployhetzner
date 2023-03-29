@@ -1,4 +1,6 @@
-#
+# wie in der Schulung
+Nur ohne Flux.
+Wenns wollt gebt Bescheid
 
  ~~~
  terraform apply 
@@ -10,6 +12,3 @@ CNI:
 
 In  group_vars/all kann 
 cni: calico
-oder 
-cni: weave 
-gesetzt werden

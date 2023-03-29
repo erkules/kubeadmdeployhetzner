@@ -1,29 +1,34 @@
 - hosts: all
   tasks:
   - name: get kubernetes apt key
-    apt_key:
+    ansible.builtin.apt_key:
       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
   - name: add kubernetes repository
-    apt_repository:
-        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
-        state: present
-    register: apt_status
-    #until: apt_status|success
-    until: apt_status is success
-    delay: 10
-    retries: 10
+    ansible.builtin.apt_repository:
+      repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+        #register: apt_status
+        ##until: apt_status|success
+        #until: apt_status is success
+        #delay: 10
+        #retries: 10
   - name: get docker apt key
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
+  - name: get docker apt key
+    ansible.builtin.apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
   - name: add docker-ce repository
-    apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
-        state: present
+    ansible.builtin.apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+      state: present
     register: apt_status
     #until: apt_status|success
-    until: apt_status is success
-    delay: 10
-    retries: 10
+    #until: apt_status is success
+    #delay: 10
+    #retries: 10
 
   - name: Create /etc/containerd
     file:
@@ -48,7 +53,7 @@
       mode: 0644
 
   - name: install packages
-    apt:
+    ansible.builtin.apt:
       name: 
       - docker-ce
       - kubelet 
@@ -63,11 +68,17 @@
       - tmux
       - git
       - vim
+      - fzf
+      - binutils
+      - make
+      - gcc
+      - mcedit
       update_cache: yes
-    register: apt_status
-    until: apt_status is success
-    delay: 10
-    retries: 10
+      force: yes
+        #register: apt_status
+        #until: apt_status is success
+        #delay: 10
+        #retries: 10
   - name: disable ufw
     systemd:
       name: ufw
@@ -86,6 +97,12 @@
      regexp: "^EDITOR"
      line: "EDITOR=vim"
      state: present
+  - name: create user
+    user:
+      name:     "{{ user }}"
+      groups:    "sudo, docker"
+      #group:    "admin"
+      shell:    /bin/bash
 
   
   - name: Load Kernel Modules for K8S - ip_vs_rr
@@ -112,3 +129,18 @@
       mode: 0644
 
 
+  - name: set pid_max to 4194303 (sysctl)
+    sysctl:
+      name: kernel.pid_max
+      value: 4194303
+      reload: yes
+
+  - name: Add mcedit alias
+    lineinfile:
+      path=/home/k8s/.bash_aliases
+      line="alias mcedit='mcedit -x'"
+      owner=k8s
+      regexp='^alias mcedit'
+      state=present
+      insertafter=EOF
+      create=True

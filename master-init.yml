@@ -1,40 +1,49 @@
 - hosts: master
   tasks:
   - name: initialise master
-    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}   --cri-socket /run/containerd/containerd.sock
-    when: cni == "weave"
-  - name: initialise master
-    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}  --cri-socket /run/containerd/containerd.sock   --pod-network-cidr=192.168.0.0/16
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}     --pod-network-cidr=192.168.0.0/16
     when: cni == "calico"
+  - name: initialise master
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}     --skip-phases=addon/kube-proxy
+    when: cni == "cilium"
+  - name: initialise master
+    shell: kubeadm init  --apiserver-advertise-address={{ ansible_eth0.ipv4.address }}    
+    when: cni == "skip"
   - name: Create /root/.kube
     file:
       path: /root/.kube
       state: directory
       owner: root
-  - name: Create /home/e2m/.kube
+  - name: "Create /home/{{ user }}/.kube"
     file:
-      path: /home/e2m/.kube
+      path: "/home/{{ user }}/.kube"
       state: directory
-      owner: e2m
+      owner: "{{ user }}"
   - name: Copy admin.conf to root
     shell: cp /etc/kubernetes/admin.conf /root/.kube/config
-  - name: Copy admin.conf to e2m
-    shell: cp /etc/kubernetes/admin.conf /home/e2m/.kube/config
+  - name: Copy admin.conf to "{{ user }}"
+    shell: cp /etc/kubernetes/admin.conf /home/{{ user }}/.kube/config
   - name: bash_completition
     shell: kubectl completion bash >/etc/bash_completion.d/kubectl
-  - name: make shure /home/e2m/.kube/config belongs to 22m
+  - name: make shure /home/{{ user }}/.kube/config belongs to 22m
     file:
-      path: /home/e2m/.kube/config
-      owner: e2m
-  - name: initialise weave
-    shell: kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
-    when: cni == "weave"
+      path: /home/{{ user }}/.kube/config
+      owner: "{{ user }}"
   - name: initialise calico
-    shell: kubectl apply -f https://docs.projectcalico.org/v3.2/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
-    when: cni == "calicoo"
-  - name: initialise calico
-    shell: kubectl apply -f https://docs.projectcalico.org/v3.9/manifests/calico.yaml 
+    shell:  kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml
     when: cni == "calico"
+  - name: initialise calico
+    shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml
+    when: cni == "calico"
+      #- name: initialise calicoctl
+      #  shell: curl -O -L  https://github.com/projectcalico/calicoctl/releases/download/v3.18.1/calicoctl
+      #  when: cni == "calico"
+  - name: initialise cilium
+    shell: kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/v1.9/install/kubernetes/quick-install.yaml
+    when: cni == "cilium"
+  - debug:
+      msg: He das mit Cilium klappt so nicht. Wir brauchen ja die externe Addresse/Port vom API-Server 
+    when: cni == "cilium"
   - name: Install Metrics-Server
     shell: kubectl apply  -f https://raw.githubusercontent.com/erkules/k8sworkshop/master/System/metrics-server.yaml
 
